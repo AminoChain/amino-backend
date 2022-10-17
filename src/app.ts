@@ -4,7 +4,7 @@ import {generate} from "./biodata-generator";
 
 const app: Application = express()
 
-const port: number = 3001
+const port = process.env.PORT || 3001
 
 app.get('/bio-data', (req: Request, res: Response) => {
     const bioData = generate()
@@ -15,5 +15,4 @@ app.get('/bio-data', (req: Request, res: Response) => {
 
 app.listen(port, function () {
     console.log(`App is listening on port http://localhost:${port} !`)
-
 })
