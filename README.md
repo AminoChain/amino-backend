@@ -11,3 +11,5 @@ example replay:
     "secret": "bc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a"
 }
 ```
+
+Use `tsc` command to update `build` folder
