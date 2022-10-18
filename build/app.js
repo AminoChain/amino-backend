@@ -10,7 +10,7 @@ const app = (0, express_1.default)();
 const port = process.env.PORT || 3001;
 app.get('/bio-data', (req, res) => {
     const bioData = (0, biodata_generator_1.generate)();
-    const secret = (0, keccak256_1.default)(Math.random()).toString('hex');
+    const secret = (0, keccak256_1.default)(Math.random().toString()).toString('hex');
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(Object.assign(Object.assign({}, bioData), { secret })));
 });
