@@ -4,6 +4,7 @@
     "keccak256": "^1.0.6"
   },
   "scripts": {
+    "start": "tsc && node build/app.js",
     "dev": "nodemon src/app.ts"
   },
   "devDependencies": {

@@ -8,7 +8,7 @@ const port = process.env.PORT || 3001
 
 app.get('/bio-data', (req: Request, res: Response) => {
     const bioData = generate()
-    const secret = keccak256(Math.random()).toString('hex')
+    const secret = keccak256(Math.random().toString()).toString('hex')
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ ...bioData, secret }))
 })
