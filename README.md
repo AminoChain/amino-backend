@@ -1,15 +1,32 @@
-Use http://localhost:3001/bio-data
+POST `/register-donation-from-biobank` called by biobank with body:
+```typescript
+interface BiobankRegistrationData {
+    hla: HLA,
+    biobankAddress: string,
+    amounts: number[]
+}
+```
+returns `biodataHash`
 
-example replay:
-```json
-{
-    "A": "HLA A*02:186",
-    "B": "HLA B*51:126",
-    "C": "HLA C*04:172",
-    "DPB": "HLA DPB1*411:01",
-    "DRB": "HLA DRB1*11:54:01",
-    "secret": "bc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a"
+
+POST `/approve-donation/:biodataHash/:donorAddress` called by authenticator UI with body:
+```typescript
+interface Signature {
+    "signature": string
+}
+```
+
+GET `/get-bio-data/:biodataHash` called by marketplace UI, returns raw HLA data:
+```typescript
+interface HLA {
+    A: number[]
+    B: number[]
+    C: number[]
+    DPB: number[]
+    DRB: number[]
 }
 ```
 
 Use `tsc` command to update `build` folder
+
+Admin suite https://dashboard.heroku.com/apps/....
