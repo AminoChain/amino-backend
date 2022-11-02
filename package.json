@@ -11,7 +11,7 @@
   },
   "scripts": {
     "update-artifacts": "rm -r src/artifacts; mkdir src/artifacts && cp -r ../amino-contracts/artifacts/contracts/* src/artifacts && git commit src/artifacts/**/*.json -m artifacts",
-    "build": "tsc && git commit build/** -m build",
+    "update-build": "tsc && git commit build/** -m build",
     "start": "tsc && node build/amino-backend/src/app.js",
     "dev": "nodemon src/app.ts"
   },
