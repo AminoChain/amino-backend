@@ -1,3 +1,5 @@
+https://amino-chain-backend.herokuapp.com
+
 POST `/register-donation-from-biobank` called by biobank with body:
 ```typescript
 interface BiobankRegistrationData {
@@ -29,4 +31,4 @@ interface HLA {
 
 Use `tsc` command to update `build` folder
 
-Admin suite https://dashboard.heroku.com/apps/....
+Admin suite https://dashboard.heroku.com/apps/amino-chain-backend

@@ -10,7 +10,7 @@ const app: Application = express()
 
 const port = process.env.PORT || 3003
 const platformWalletPk = '0e1c192d251e4b9de9f2c0218b4e10e710d7053157e48d41de28cac5757c6300' // same as biobank PK for tests
-const hlaEncodingKey = platformWalletPk
+const hlaEncodingKey = 'secret'//platformWalletPk
 
 export interface HLAHashed {
     A: string
@@ -65,39 +65,52 @@ app.post('/register-donation-from-biobank', async (req: Request, res: Response) 
 })
 
 app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
-    const { biodataHash, donorAddress} = req.params
-
-    const { signature } = req.body
-    const { hla, amounts, biobankAddress } = storage[biodataHash]
-
-    const authenticator = await getAuthenticatorContract()
-
-    const bioDataHashed = {
-        A: await authenticator.hash(hla.A.toString()),
-        B: await authenticator.hash(hla.B.toString()),
-        C: await authenticator.hash(hla.C.toString()),
-        DPB: await authenticator.hash(hla.DPB.toString()),
-        DRB: await authenticator.hash(hla.DRB.toString()),
-    }
-
-    const biodataEncoded = encryptor.encrypt(JSON.stringify(hla))
-
     try {
-        await authenticator.register(
-            bioDataHashed,
-            biodataHash,
-            biodataEncoded,
-            amounts,
-            donorAddress,
-            signature,
-            biobankAddress,
-            { gasLimit: 100_000 }
-        )
-    } catch (e) {
-        throw e
-    }
+        const {biodataHash, donorAddress} = req.params
 
-    res.sendStatus(200)
+        const {signature} = req.body
+        const data = storage[biodataHash]
+        if (data) {
+            const { hla, amounts, biobankAddress} = data
+
+            const authenticator = await getAuthenticatorContract()
+
+            const bioDataHashed = {
+                A: await authenticator.hash(hla.A.toString()),
+                B: await authenticator.hash(hla.B.toString()),
+                C: await authenticator.hash(hla.C.toString()),
+                DPB: await authenticator.hash(hla.DPB.toString()),
+                DRB: await authenticator.hash(hla.DRB.toString()),
+            }
+
+            const biodataEncoded = encryptor.encrypt(JSON.stringify(hla))
+
+            try {
+                const tx = await authenticator.register(
+                    bioDataHashed,
+                    biodataHash,
+                    biodataEncoded, //ethers.constants.HashZero
+                    amounts,
+                    donorAddress,
+                    signature,
+                    biobankAddress,
+                    { gasLimit: 200_000 }
+                )
+                const receipt = await tx.wait()
+                console.log('Registration tx: '+tx.hash)
+            } catch (e) {
+                throw e
+            }
+
+            res.sendStatus(200)
+        } else {
+            console.error('No data for biodataHash: '+biodataHash)
+            res.status(500)
+        }
+    } catch (e) {
+        console.error(e)
+        res.status(500)
+    }
 })
 
 app.get('/get-bio-data/:biodataHash', async (req: Request, res: Response) => {
@@ -106,9 +119,13 @@ app.get('/get-bio-data/:biodataHash', async (req: Request, res: Response) => {
     const authenticator = await getAuthenticatorContract()
 
     const storedBioDataEncoded = await authenticator.bioDataEncoded(biodataHash)
-    const storedBioData = encryptor.decrypt(ethers.utils.arrayify(storedBioDataEncoded))
+    if (storedBioDataEncoded === '0x') {
+        res.status(200).send('')
+    } else {
+        const storedBioData = encryptor.decrypt(ethers.utils.arrayify(storedBioDataEncoded))
 
-    res.status(200).send(storedBioData)
+        res.status(200).send(storedBioData)
+    }
 })
 
 app.listen(port, function () {
@@ -120,7 +137,7 @@ async function getAuthenticatorContract() {
     const signer = new ethers.Wallet(platformWalletPk, provider)
 
     const contract = new Contract(
-        '0xcDc8e06c4c8adfDB5ddbF562E0bf6Ea084305C33',
+        '0xefAB5852961678E66b2ce3068d8138B88Ba947F0',
         AminoChainAuthenticatorArtifact.abi,
         signer
     )
