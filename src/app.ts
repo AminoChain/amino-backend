@@ -2,7 +2,7 @@ import cors from 'cors'
 import {BigNumberish, BytesLike, CallOverrides, Contract, ContractTransaction, ethers, Overrides} from 'ethers'
 import express, {Application, raw, Request, Response} from 'express'
 // @ts-ignore
-import AminoChainAuthenticatorArtifact from '../../amino-contracts/artifacts/contracts/AminoChainAuthenticator.sol/AminoChainAuthenticator.json'
+import AminoChainAuthenticatorArtifact from './artifacts/AminoChainAuthenticator.sol/AminoChainAuthenticator.json'
 import { AminoChainAuthenticator } from '../../amino-contracts/typechain/contracts'
 import {Encryptor} from "./encryptor";
 

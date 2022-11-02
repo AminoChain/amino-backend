@@ -10,7 +10,9 @@
     "keccak256": "^1.0.6"
   },
   "scripts": {
-    "start": "tsc && node build/app.js",
+    "update-artifacts": "rm -r src/artifacts; mkdir src/artifacts && cp -r ../amino-contracts/artifacts/contracts/* src/artifacts && git commit src/artifacts/**/*.json -m artifacts",
+    "build": "tsc && git commit build/** -m build",
+    "start": "tsc && node build/amino-backend/src/app.js",
     "dev": "nodemon src/app.ts"
   },
   "devDependencies": {

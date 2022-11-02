@@ -1,1 +1,1 @@
-web: node build/app.js
+web: node build/amino-backend/src/app.js
