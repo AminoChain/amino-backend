@@ -6,11 +6,19 @@ import AminoChainAuthenticatorArtifact from './artifacts/AminoChainAuthenticator
 import { AminoChainAuthenticator } from '../../amino-contracts/typechain/contracts'
 import {Encryptor} from "./encryptor";
 
+import * as dotenv from 'dotenv'
+import {getFilesFromPath, Web3Storage} from "web3.storage";
+import * as fs from "fs"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import { open } from 'node:fs/promises';
+import {arrayify, recoverAddress} from "ethers/lib/utils";
+
+dotenv.config()
+
 const app: Application = express()
 
 const port = process.env.PORT || 3003
-const platformWalletPk = '0e1c192d251e4b9de9f2c0218b4e10e710d7053157e48d41de28cac5757c6300' // same as biobank PK for tests
-const hlaEncodingKey = 'secret'//platformWalletPk
+const platformWalletPk = 'dc5007a9fc7f26997728e0738f21d8b276391b8a533fa134b149e143d7d1e21f'
+export const hlaEncodingKey = 'secret'//platformWalletPk
 
 export interface HLAHashed {
     A: string
@@ -31,7 +39,10 @@ export interface HLA {
 interface BiobankRegistrationData {
     hla: HLA,
     biobankAddress: string,
-    amounts: number[]
+    donorAddress: string,
+    amounts: number[],
+    signature: string,
+    genome: string
 }
 
 export type PromiseOrValue<T> = T | Promise<T>;
@@ -40,31 +51,68 @@ app.use(express.json())
 // app.use(express.raw())
 app.use(cors())
 
-const storage: {[key: string]: BiobankRegistrationData} = {}
 const encryptor = new Encryptor(hlaEncodingKey)
 
-app.post('/register-donation-from-biobank', async (req: Request, res: Response) => {
-    // const { biodataHash } = req.params
 
+app.post('/register-donation', async (req: Request, res: Response) => {
     const data = req.body as BiobankRegistrationData
+    const { hla, amounts, biobankAddress, donorAddress, genome, signature} = data
 
     const authenticator = await getAuthenticatorContract()
 
-    const biodataHash = await authenticator.getBioDataHash(
-        data.hla.A.toString(),
-        data.hla.B.toString(),
-        data.hla.C.toString(),
-        data.hla.DPB.toString(),
-        data.hla.DRB.toString()
+    const hlaHash = ethers.utils.id(JSON.stringify(hla))
+    const hlaEncoded = encryptor.encrypt(JSON.stringify(hla))
+
+    const registrationParametersHash = await authenticator.getRegistrationHash(
+        donorAddress,
+        hlaHash
     )
 
-    storage[biodataHash] = data
-    res.status(200).send( biodataHash)
+    const digest = arrayify(registrationParametersHash)
+    const recoveredAddress = recoverAddress(digest, signature)
+
+    if (recoveredAddress.localeCompare(donorAddress) !== 1) {
+        res.status(403)
+        return
+    }
+
+    const genomeEncodedIpfsId = await uploadGenomeToIpfs(genome)
+
+    const hlaHashed = {
+        A: ethers.utils.id(hla.A.toString()), // use ethers.utils.id instead
+        B: ethers.utils.id(hla.B.toString()),
+        C: ethers.utils.id(hla.C.toString()),
+        DPB: ethers.utils.id(hla.DPB.toString()),
+        DRB: ethers.utils.id(hla.DRB.toString()),
+    }
+
+    try {
+        const tx = await authenticator.register({
+            hlaHashed,
+            hlaHash,
+            hlaEncoded,
+            genomeEncodedIpfsId, //: 'bafybeihfkmtsraiwkdkb7pc7ltmmsiqawoozzbjtcanilbykpv6trj5m7y', // encode and upload `genome` to IPFS
+            amounts,
+            donor: donorAddress,
+            biobank: biobankAddress
+        }, { gasLimit: 100_000 })
+        const receipt = await tx.wait()
+        console.log('Registration tx: '+tx.hash)
+    } catch (e) {
+        console.error(e)
+        res.status(500)
+        return
+    }
+
+    res.sendStatus(200)
+
+    // res.status(200).send( biodataHash)
+
     // res.setHeader('Content-Type', 'application/json');
     // res.end(JSON.stringify({ ...bioData, secret }))
 })
 
-app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
+/*app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
     try {
         const {biodataHash, donorAddress} = req.params
 
@@ -76,11 +124,11 @@ app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, re
             const authenticator = await getAuthenticatorContract()
 
             const bioDataHashed = {
-                A: await authenticator.hash(hla.A.toString()),
-                B: await authenticator.hash(hla.B.toString()),
-                C: await authenticator.hash(hla.C.toString()),
-                DPB: await authenticator.hash(hla.DPB.toString()),
-                DRB: await authenticator.hash(hla.DRB.toString()),
+                A: ethers.utils.id(hla.A.toString()),
+                B: ethers.utils.id(hla.B.toString()),
+                C: ethers.utils.id(hla.C.toString()),
+                DPB: ethers.utils.id(hla.DPB.toString()),
+                DRB: ethers.utils.id(hla.DRB.toString()),
             }
 
             const biodataEncoded = encryptor.encrypt(JSON.stringify(hla))
@@ -111,12 +159,12 @@ app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, re
         console.error(e)
         res.status(500)
     }
-})
+})*/
 
 app.get('/get-bio-data/:biodataHash', async (req: Request, res: Response) => {
     const { biodataHash} = req.params
 
-    const authenticator = await getAuthenticatorContract()
+    /*const authenticator = await getAuthenticatorContract()
 
     const storedBioDataEncoded = await authenticator.bioDataEncoded(biodataHash)
     if (storedBioDataEncoded === '0x') {
@@ -125,7 +173,7 @@ app.get('/get-bio-data/:biodataHash', async (req: Request, res: Response) => {
         const storedBioData = encryptor.decrypt(ethers.utils.arrayify(storedBioDataEncoded))
 
         res.status(200).send(storedBioData)
-    }
+    }*/
 })
 
 app.listen(port, function () {
@@ -137,9 +185,34 @@ async function getAuthenticatorContract() {
     const signer = new ethers.Wallet(platformWalletPk, provider)
 
     const contract = new Contract(
-        '0xefAB5852961678E66b2ce3068d8138B88Ba947F0',
+        '0xad6414d5209B667Cf24BFf21DBa25b56274759C5',
         AminoChainAuthenticatorArtifact.abi,
         signer
     )
     return await contract.deployed() as unknown as AminoChainAuthenticator
+}
+
+
+export async function uploadGenomeToIpfs(genome: string) {
+    const web3StorageApi = process.env.WEB3_STORAGE_TOKEN! // get token from https://web3.storage/tokens/ and set into .env
+    const storage = new Web3Storage({ token: web3StorageApi })
+
+    const genomeEncoded = encryptor.encrypt(genome)
+
+    fs.writeFile('file',genomeEncoded, (error) => {
+        console.error(error)
+    })
+
+    const files = await getFilesFromPath('file')
+
+
+    // const data = new Blob([genomeEncoded], { type: 'application/octet-stream' });
+
+    // const file = new File([genomeEncoded.buffer], 'genome.encoded.txt')
+    // const cid = await storage.put([file]);
+
+    const cid = await storage.put(files)
+
+    console.log(cid)
+    return cid as string
 }
