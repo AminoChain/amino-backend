@@ -11,7 +11,6 @@ import {getFilesFromPath, Web3Storage} from "web3.storage";
 import * as fs from "fs"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import { open } from 'node:fs/promises';
 import {arrayify, recoverAddress} from "ethers/lib/utils";
-import {timeout} from "@testdeck/mocha/index";
 
 dotenv.config()
 
@@ -48,7 +47,6 @@ interface BiobankRegistrationData {
 
 export type PromiseOrValue<T> = T | Promise<T>;
 
-app.use(timeout(3 * 60_000))
 app.use(express.json())
 // app.use(express.raw())
 app.use(cors())
@@ -178,9 +176,10 @@ app.get('/get-bio-data/:biodataHash', async (req: Request, res: Response) => {
     }*/
 })
 
-app.listen(port, function () {
+const server = app.listen(port, function () {
     console.log(`App is listening on port http://localhost:${port} !`)
 })
+server.timeout = 3 * 60_000
 
 async function getAuthenticatorContract() {
     const provider = new ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com')
