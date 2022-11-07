@@ -41,6 +41,7 @@ const ethers_1 = require("ethers");
 const express_1 = __importDefault(require("express"));
 // @ts-ignore
 const AminoChainAuthenticator_json_1 = __importDefault(require("./artifacts/AminoChainAuthenticator.sol/AminoChainAuthenticator.json"));
+const AminoChainDonation_json_1 = __importDefault(require("./artifacts/AminoChainDonation.sol/AminoChainDonation.json"));
 const encryptor_1 = require("./encryptor");
 const dotenv = __importStar(require("dotenv"));
 const web3_storage_1 = require("web3.storage");
@@ -148,27 +149,47 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500)
     }
 })*/
-app.get('/get-bio-data/:biodataHash', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { biodataHash } = req.params;
-    /*const authenticator = await getAuthenticatorContract()
-
-    const storedBioDataEncoded = await authenticator.bioDataEncoded(biodataHash)
-    if (storedBioDataEncoded === '0x') {
-        res.status(200).send('')
-    } else {
-        const storedBioData = encryptor.decrypt(ethers.utils.arrayify(storedBioDataEncoded))
-
-        res.status(200).send(storedBioData)
-    }*/
+app.get('/decode-hla/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { tokenId } = req.params;
+    const nft = yield getNftContract();
+    const hlaEncoded = yield nft.getHlaEncoded(tokenId);
+    if (hlaEncoded === '0x') {
+        res.status(200).send('').end();
+    }
+    else {
+        const hla = encryptor.decrypt(ethers_1.ethers.utils.arrayify(hlaEncoded));
+        res.status(200).send(hla).end();
+    }
 }));
-const server = app.listen(port, function () {
+app.get('/decode-genome/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { tokenId } = req.params;
+    const nft = yield getNftContract();
+    const genomeEncodedIpfsId = yield nft.getGenomeEncodedUrl(tokenId);
+    if (genomeEncodedIpfsId === '') {
+        res.status(200).end();
+    }
+    else {
+        const url = `https://${genomeEncodedIpfsId}.ipfs.w3s.link/ipfs/${genomeEncodedIpfsId}/file`;
+        const response = yield fetch(url);
+        const encoded = yield response.arrayBuffer();
+        const decoded = encryptor.decrypt(new Uint8Array(encoded));
+        res.status(200).send(decoded).end();
+    }
+}));
+app.listen(port, function () {
     console.log(`App is listening on port http://localhost:${port} !`);
 });
+const provider = new ethers_1.ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com');
+const signer = new ethers_1.ethers.Wallet(platformWalletPk, provider);
 function getAuthenticatorContract() {
     return __awaiter(this, void 0, void 0, function* () {
-        const provider = new ethers_1.ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com');
-        const signer = new ethers_1.ethers.Wallet(platformWalletPk, provider);
         const contract = new ethers_1.Contract('0xe678C9BA5a9aE61fAc009a602b29ed869eD8156c', AminoChainAuthenticator_json_1.default.abi, signer);
+        return yield contract.deployed();
+    });
+}
+function getNftContract() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const contract = new ethers_1.Contract('0xdF20EDD683d4a5e14a7B37eC9fDc6884d07Ba92E', AminoChainDonation_json_1.default.abi, signer);
         return yield contract.deployed();
     });
 }
