@@ -187,7 +187,7 @@ async function getAuthenticatorContract() {
     const signer = new ethers.Wallet(platformWalletPk, provider)
 
     const contract = new Contract(
-        '0xad6414d5209B667Cf24BFf21DBa25b56274759C5',
+        '0x6aD14C26FacD68a5b7c8172A493D359ad0d06482',
         AminoChainAuthenticatorArtifact.abi,
         signer
     )
