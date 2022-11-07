@@ -46,11 +46,13 @@ const dotenv = __importStar(require("dotenv"));
 const web3_storage_1 = require("web3.storage");
 const fs = __importStar(require("fs")); // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 const utils_1 = require("ethers/lib/utils");
+const index_1 = require("@testdeck/mocha/index");
 dotenv.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3003;
 const platformWalletPk = 'dc5007a9fc7f26997728e0738f21d8b276391b8a533fa134b149e143d7d1e21f';
 exports.hlaEncodingKey = 'secret'; //platformWalletPk
+app.use((0, index_1.timeout)(3 * 60000));
 app.use(express_1.default.json());
 // app.use(express.raw())
 app.use((0, cors_1.default)());
