@@ -96,15 +96,15 @@ app.post('/register-donation', async (req: Request, res: Response) => {
             donor: donorAddress,
             biobank: biobankAddress
         }, { gasLimit: 100_000 })
-        const receipt = await tx.wait()
+        // const receipt = await tx.wait()
         console.log('Registration tx: '+tx.hash)
+        res.status(200).send(tx.hash)
     } catch (e) {
         console.error(e)
         res.status(500)
-        return
     }
 
-    res.sendStatus(200)
+
 
     // res.status(200).send( biodataHash)
 
@@ -179,7 +179,6 @@ app.get('/get-bio-data/:biodataHash', async (req: Request, res: Response) => {
 const server = app.listen(port, function () {
     console.log(`App is listening on port http://localhost:${port} !`)
 })
-server.timeout = 3 * 60_000
 
 async function getAuthenticatorContract() {
     const provider = new ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com')
