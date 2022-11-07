@@ -55,7 +55,7 @@ const encryptor = new Encryptor(hlaEncodingKey)
 
 
 app.post('/register-donation', async (req: Request, res: Response) => {
-    res.status(200)
+    res.status(200).end()
     return
 
     const data = req.body as BiobankRegistrationData
