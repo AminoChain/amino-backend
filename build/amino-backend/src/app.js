@@ -56,6 +56,8 @@ app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 const encryptor = new encryptor_1.Encryptor(exports.hlaEncodingKey);
 app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.status(200);
+    return;
     const data = req.body;
     const { hla, amounts, biobankAddress, donorAddress, genome, signature } = data;
     const authenticator = yield getAuthenticatorContract();
