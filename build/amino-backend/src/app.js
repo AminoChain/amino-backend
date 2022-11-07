@@ -60,7 +60,12 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
     const { hla, amounts, biobankAddress, donorAddress, genome, signature } = data;
     const authenticator = yield getAuthenticatorContract();
     const hlaHash = ethers_1.ethers.utils.id(JSON.stringify(hla));
-    const registrationParametersHash = yield authenticator.getRegistrationHash(donorAddress, hlaHash);
+    // reduce long operation
+    const registrationParametersHash = '0xa83a0d199caab0a87cbc094b8a88acb6b570176ad5cb374cf576768712b52151';
+    /*const registrationParametersHash = await authenticator.getRegistrationHash(
+        donorAddress,
+        hlaHash
+    )*/
     const digest = (0, utils_1.arrayify)(registrationParametersHash);
     const recoveredAddress = (0, utils_1.recoverAddress)(digest, signature);
     if (recoveredAddress.localeCompare(donorAddress) !== 1) {
