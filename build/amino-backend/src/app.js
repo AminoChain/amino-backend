@@ -86,15 +86,14 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
             donor: donorAddress,
             biobank: biobankAddress
         }, { gasLimit: 100000 });
-        const receipt = yield tx.wait();
+        // const receipt = await tx.wait()
         console.log('Registration tx: ' + tx.hash);
+        res.status(200).send(tx.hash);
     }
     catch (e) {
         console.error(e);
         res.status(500);
-        return;
     }
-    res.sendStatus(200);
     // res.status(200).send( biodataHash)
     // res.setHeader('Content-Type', 'application/json');
     // res.end(JSON.stringify({ ...bioData, secret }))
@@ -163,7 +162,6 @@ app.get('/get-bio-data/:biodataHash', (req, res) => __awaiter(void 0, void 0, vo
 const server = app.listen(port, function () {
     console.log(`App is listening on port http://localhost:${port} !`);
 });
-server.timeout = 3 * 60000;
 function getAuthenticatorContract() {
     return __awaiter(this, void 0, void 0, function* () {
         const provider = new ethers_1.ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com');
