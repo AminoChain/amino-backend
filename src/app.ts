@@ -62,10 +62,12 @@ app.post('/register-donation', async (req: Request, res: Response) => {
 
     const hlaHash = ethers.utils.id(JSON.stringify(hla))
 
-    const registrationParametersHash = await authenticator.getRegistrationHash(
+    // reduce long operation
+    const registrationParametersHash = '0xa83a0d199caab0a87cbc094b8a88acb6b570176ad5cb374cf576768712b52151'
+    /*const registrationParametersHash = await authenticator.getRegistrationHash(
         donorAddress,
         hlaHash
-    )
+    )*/
 
     const digest = arrayify(registrationParametersHash)
     const recoveredAddress = recoverAddress(digest, signature)
@@ -83,13 +85,21 @@ app.post('/register-donation', async (req: Request, res: Response) => {
     const hlaEncoded = mockHlaEncoded
     // const hlaEncoded = encryptor.encrypt(JSON.stringify(hla))
 
+    // reduce long operation
     const hlaHashed = {
+        "A": "0xb4ff4867cc79126826f7a227459583daf153a4c06ebe46aa70d02b5edf79bf90",
+        "B": "0x4f78dcb8885880abdd79a0ee42acd93e663070f9f26bc0fc0c5f286292ed80b8",
+        "C": "0x91a4b0333b4164454a16c893710e4d93be09adce949dd57b62045d9702889926",
+        "DPB": "0x2bf8860cf9668ead6525698f0457f7848f42305ccbc59f6880f5eee34ac8283f",
+        "DRB": "0x8a2488f5299e815401467583e7495c69909605d3670c05471bc064e9d0938228"
+    }
+    /*const hlaHashed = {
         A: ethers.utils.id(hla.A.toString()), // use ethers.utils.id instead
         B: ethers.utils.id(hla.B.toString()),
         C: ethers.utils.id(hla.C.toString()),
         DPB: ethers.utils.id(hla.DPB.toString()),
         DRB: ethers.utils.id(hla.DRB.toString()),
-    }
+    }*/
 
     try {
         const tx = await authenticator.register({
