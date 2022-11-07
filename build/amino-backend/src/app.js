@@ -168,7 +168,7 @@ function getAuthenticatorContract() {
     return __awaiter(this, void 0, void 0, function* () {
         const provider = new ethers_1.ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com');
         const signer = new ethers_1.ethers.Wallet(platformWalletPk, provider);
-        const contract = new ethers_1.Contract('0x6aD14C26FacD68a5b7c8172A493D359ad0d06482', AminoChainAuthenticator_json_1.default.abi, signer);
+        const contract = new ethers_1.Contract('0xe678C9BA5a9aE61fAc009a602b29ed869eD8156c', AminoChainAuthenticator_json_1.default.abi, signer);
         return yield contract.deployed();
     });
 }
