@@ -70,7 +70,7 @@ app.post('/register-donation', async (req: Request, res: Response) => {
     const digest = arrayify(registrationParametersHash)
     const recoveredAddress = recoverAddress(digest, signature)
 
-    if (recoveredAddress.localeCompare(donorAddress) !== 1) {
+    if (recoveredAddress != donorAddress) {
         console.log(`hlaHash: ${hlaHash}\nregistrationParametersHash: ${registrationParametersHash}\nrecoveredAddress: ${recoveredAddress}`)
         res.status(403).end()
         return
