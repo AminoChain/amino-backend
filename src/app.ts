@@ -61,7 +61,6 @@ app.post('/register-donation', async (req: Request, res: Response) => {
     const authenticator = await getAuthenticatorContract()
 
     const hlaHash = ethers.utils.id(JSON.stringify(hla))
-    const hlaEncoded = encryptor.encrypt(JSON.stringify(hla))
 
     const registrationParametersHash = await authenticator.getRegistrationHash(
         donorAddress,
@@ -72,10 +71,12 @@ app.post('/register-donation', async (req: Request, res: Response) => {
     const recoveredAddress = recoverAddress(digest, signature)
 
     if (recoveredAddress.localeCompare(donorAddress) !== 1) {
+        console.log(`hlaHash: ${hlaHash}\nregistrationParametersHash: ${registrationParametersHash}\nrecoveredAddress: ${recoveredAddress}`)
         res.status(403).end()
         return
     }
 
+    const hlaEncoded = encryptor.encrypt(JSON.stringify(hla))
     const genomeEncodedIpfsId = await uploadGenomeToIpfs(genome)
 
     const hlaHashed = {
