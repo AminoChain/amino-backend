@@ -60,7 +60,6 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
     const { hla, amounts, biobankAddress, donorAddress, genome, signature } = data;
     const authenticator = yield getAuthenticatorContract();
     const hlaHash = ethers_1.ethers.utils.id(JSON.stringify(hla));
-    const hlaEncoded = encryptor.encrypt(JSON.stringify(hla));
     const registrationParametersHash = yield authenticator.getRegistrationHash(donorAddress, hlaHash);
     const digest = (0, utils_1.arrayify)(registrationParametersHash);
     const recoveredAddress = (0, utils_1.recoverAddress)(digest, signature);
@@ -68,7 +67,12 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(403);
         return;
     }
-    const genomeEncodedIpfsId = yield uploadGenomeToIpfs(genome);
+    // reduce long operation
+    // const genomeEncodedIpfsId = await uploadGenomeToIpfs(genome)
+    const genomeEncodedIpfsId = 'bafybeihfkmtsraiwkdkb7pc7ltmmsiqawoozzbjtcanilbykpv6trj5m7y';
+    // reduce long operation
+    const hlaEncoded = mockHlaEncoded;
+    // const hlaEncoded = encryptor.encrypt(JSON.stringify(hla))
     const hlaHashed = {
         A: ethers_1.ethers.utils.id(hla.A.toString()),
         B: ethers_1.ethers.utils.id(hla.B.toString()),
@@ -188,3 +192,85 @@ function uploadGenomeToIpfs(genome) {
     });
 }
 exports.uploadGenomeToIpfs = uploadGenomeToIpfs;
+const mockHlaEncoded = new Uint8Array([
+    69,
+    8,
+    5,
+    3,
+    8,
+    0,
+    55,
+    7,
+    9,
+    1,
+    134,
+    229,
+    34,
+    159,
+    31,
+    11,
+    82,
+    79,
+    189,
+    151,
+    42,
+    206,
+    245,
+    70,
+    247,
+    126,
+    91,
+    168,
+    253,
+    84,
+    136,
+    93,
+    42,
+    173,
+    251,
+    39,
+    91,
+    232,
+    154,
+    146,
+    2,
+    173,
+    35,
+    68,
+    254,
+    234,
+    99,
+    202,
+    57,
+    178,
+    109,
+    65,
+    250,
+    46,
+    47,
+    141,
+    163,
+    209,
+    148,
+    144,
+    84,
+    204,
+    138,
+    78,
+    127,
+    193,
+    103,
+    111,
+    65,
+    184,
+    181,
+    73,
+    141,
+    117,
+    209,
+    188,
+    153,
+    143,
+    145,
+    156
+]);
