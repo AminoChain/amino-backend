@@ -64,7 +64,7 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
     const registrationParametersHash = yield authenticator.getRegistrationHash(donorAddress, hlaHash);
     const digest = (0, utils_1.arrayify)(registrationParametersHash);
     const recoveredAddress = (0, utils_1.recoverAddress)(digest, signature);
-    if (recoveredAddress != donorAddress) {
+    if (recoveredAddress.toLowerCase() != donorAddress.toLowerCase()) {
         console.log(`hlaHash: ${hlaHash}\nregistrationParametersHash: ${registrationParametersHash}\nrecoveredAddress: ${recoveredAddress} != \ndonorAddress: ${donorAddress}`);
         res.status(403).end();
         return;
