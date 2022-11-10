@@ -178,7 +178,7 @@ app.get('/decode-genome/:tokenId', async (req: Request, res: Response) => {
 
     const nft = await getNftContract()
 
-    const genomeEncodedIpfsId = await nft.getGenomeEncodedUrl(tokenId)
+    const genomeEncodedIpfsId = await nft.getGenomeEncodedIpfsId(tokenId)
     if (genomeEncodedIpfsId === '') {
         res.status(200).end()
     } else {
