@@ -39,21 +39,19 @@ exports.uploadGenomeToIpfs = exports.hlaEncodingKey = void 0;
 const cors_1 = __importDefault(require("cors"));
 const ethers_1 = require("ethers");
 const express_1 = __importDefault(require("express"));
-// @ts-ignore
 const AminoChainAuthenticator_json_1 = __importDefault(require("./artifacts/AminoChainAuthenticator.sol/AminoChainAuthenticator.json"));
 const AminoChainDonation_json_1 = __importDefault(require("./artifacts/AminoChainDonation.sol/AminoChainDonation.json"));
 const encryptor_1 = require("./encryptor");
 const dotenv = __importStar(require("dotenv"));
 const web3_storage_1 = require("web3.storage");
-const fs = __importStar(require("fs")); // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+const fs = __importStar(require("fs"));
 const utils_1 = require("ethers/lib/utils");
 dotenv.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3003;
-const platformWalletPk = 'dc5007a9fc7f26997728e0738f21d8b276391b8a533fa134b149e143d7d1e21f';
+const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY || '';
 exports.hlaEncodingKey = 'secret'; //platformWalletPk
 app.use(express_1.default.json());
-// app.use(express.raw())
 app.use((0, cors_1.default)());
 const encryptor = new encryptor_1.Encryptor(exports.hlaEncodingKey);
 app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -98,54 +96,10 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).end();
     }
 }));
-/*app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
-    try {
-        const {biodataHash, donorAddress} = req.params
-
-        const {signature} = req.body
-        const data = storage[biodataHash]
-        if (data) {
-            const { hla, amounts, biobankAddress} = data
-
-            const authenticator = await getAuthenticatorContract()
-
-            const bioDataHashed = {
-                A: ethers.utils.id(hla.A.toString()),
-                B: ethers.utils.id(hla.B.toString()),
-                C: ethers.utils.id(hla.C.toString()),
-                DPB: ethers.utils.id(hla.DPB.toString()),
-                DRB: ethers.utils.id(hla.DRB.toString()),
-            }
-
-            const biodataEncoded = encryptor.encrypt(JSON.stringify(hla))
-
-            try {
-                const tx = await authenticator.register(
-                    bioDataHashed,
-                    biodataHash,
-                    biodataEncoded, //ethers.constants.HashZero
-                    amounts,
-                    donorAddress,
-                    signature,
-                    biobankAddress,
-                    { gasLimit: 200_000 }
-                )
-                const receipt = await tx.wait()
-                console.log('Registration tx: '+tx.hash)
-            } catch (e) {
-                throw e
-            }
-
-            res.sendStatus(200)
-        } else {
-            console.error('No data for biodataHash: '+biodataHash)
-            res.status(500)
-        }
-    } catch (e) {
-        console.error(e)
-        res.status(500)
-    }
-})*/
+/* TODO
+Add protection from authorized usage by including signed by doctor message in request.
+Having message and signature we can get signer address and check if this address whitelisted in marketplace
+ */
 app.get('/decode-hla/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { tokenId } = req.params;
     const nft = yield getNftContract();
@@ -159,18 +113,11 @@ app.get('/decode-hla/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, 
         res.end(hla);
     }
 }));
-app.get('/encode-hla', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const encoded = encryptor.encrypt(JSON.stringify({
-        A: [1, 2, 3],
-        B: [1, 2, 3],
-        C: [1, 2, 3],
-        DPB: [1, 2, 3, 4],
-        DRB: [1, 2, 3, 4],
-    }));
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(Object.values(encoded)));
-}));
 app.get('/decode-genome/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    /* TODO
+    Add protection from authorized usage by including signed by doctor message in request.
+    Having message and signature we can get signer address and check if this address whitelisted in marketplace
+     */
     const { tokenId } = req.params;
     const nft = yield getNftContract();
     const genomeEncodedIpfsId = yield nft.getGenomeEncodedIpfsId(tokenId);
@@ -207,15 +154,12 @@ function uploadGenomeToIpfs(genome) {
         const web3StorageApi = process.env.WEB3_STORAGE_TOKEN; // get token from https://web3.storage/tokens/ and set into .env
         const storage = new web3_storage_1.Web3Storage({ token: web3StorageApi });
         const genomeEncoded = encryptor.encrypt(genome);
-        fs.writeFile('file', genomeEncoded, (error) => {
+        fs.writeFile('genome.tmp', genomeEncoded, (error) => {
             console.error(error);
         });
         const files = yield (0, web3_storage_1.getFilesFromPath)('file');
-        // const data = new Blob([genomeEncoded], { type: 'application/octet-stream' });
-        // const file = new File([genomeEncoded.buffer], 'genome.encoded.txt')
-        // const cid = await storage.put([file]);
         const cid = yield storage.put(files);
-        console.log(cid);
+        // todo delete 'genome.tmp' file
         return cid;
     });
 }
