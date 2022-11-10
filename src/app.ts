@@ -106,13 +106,6 @@ app.post('/register-donation', async (req: Request, res: Response) => {
         console.error(e)
         res.status(500).end()
     }
-
-
-
-    // res.status(200).send( biodataHash)
-
-    // res.setHeader('Content-Type', 'application/json');
-    // res.end(JSON.stringify({ ...bioData, secret }))
 })
 
 /*app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
@@ -175,7 +168,8 @@ app.get('/decode-hla/:tokenId', async (req: Request, res: Response) => {
     } else {
         const hla = encryptor.decrypt(ethers.utils.arrayify(hlaEncoded))
 
-        res.status(200).send(hla).end()
+        res.setHeader('Content-Type', 'application/json')
+        res.end(hla)
     }
 })
 

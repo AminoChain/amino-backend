@@ -97,9 +97,6 @@ app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, f
         console.error(e);
         res.status(500).end();
     }
-    // res.status(200).send( biodataHash)
-    // res.setHeader('Content-Type', 'application/json');
-    // res.end(JSON.stringify({ ...bioData, secret }))
 }));
 /*app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
     try {
@@ -158,7 +155,8 @@ app.get('/decode-hla/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, 
     }
     else {
         const hla = encryptor.decrypt(ethers_1.ethers.utils.arrayify(hlaEncoded));
-        res.status(200).send(hla).end();
+        res.setHeader('Content-Type', 'application/json');
+        res.end(hla);
     }
 }));
 app.get('/decode-genome/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
