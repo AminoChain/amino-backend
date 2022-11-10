@@ -189,7 +189,7 @@ function getAuthenticatorContract() {
 }
 function getNftContract() {
     return __awaiter(this, void 0, void 0, function* () {
-        const contract = new ethers_1.Contract('0xdF20EDD683d4a5e14a7B37eC9fDc6884d07Ba92E', AminoChainDonation_json_1.default.abi, signer);
+        const contract = new ethers_1.Contract('0xE6C8610d8C6638fa7088186f29dceC474f1518C2', AminoChainDonation_json_1.default.abi, signer);
         return yield contract.deployed();
     });
 }
