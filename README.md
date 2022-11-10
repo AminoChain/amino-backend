@@ -1,24 +1,57 @@
-https://amino-chain-backend.herokuapp.com
+Deployed on https://amino-chain-backend.herokuapp.com
 
-POST `/register-donation-from-biobank` called by biobank with body:
+# POST `/register-donation` 
+called by protocol owner with body:
+
 ```typescript
 interface BiobankRegistrationData {
     hla: HLA,
     biobankAddress: string,
-    amounts: number[]
+    donorAddress: string,
+    amounts: number[],
+    signature: string,
+    genome: string
 }
 ```
-returns `biodataHash`
+returns `txHash`
 
+`amounts` -- array of donation fractions in CC. Example: [10, 5, 5, 2, 2, 2, 2, 2] or [30] <br />
+`signature` -- donor should sign message to prove identity. Check example below <br />
+`genome` -- full genome and donor info
 
-POST `/approve-donation/:biodataHash/:donorAddress` called by authenticator UI with body:
 ```typescript
-interface Signature {
-    "signature": string
-}
+const authenticator = new Contract(
+    contractAddress,
+    abis.authenticator,
+    new ethers.providers.JsonRpcProvider('https://rpc-mumbai.matic.today')
+)
+
+let hlaHash = ethers.utils.id(JSON.stringify(hla))
+const registrationParametersHash = await authenticator.getRegistrationHash(donorAddress, hlaHash)
+
+connector // from WalletConnect
+    .signMessage([account, registrationParametersHash])
+    .then(async (signature) => {
+        const response = await fetch(platformBackend + `register-donation`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                hla,
+                biobankAddress,
+                donorAddress,
+                amounts,
+                signature,
+                genome,
+            }),
+        })
+    })
 ```
 
-GET `/get-bio-data/:biodataHash` called by marketplace UI, returns raw HLA data:
+Full example in UI repo `components/biobank/appointments/register/donorApprovePage/DonorApprovePage.jsx`
+
+
+# GET `/decode-hla/:tokenId` 
+called by marketplace UI, returns raw HLA data:
 ```typescript
 interface HLA {
     A: number[]
@@ -29,6 +62,11 @@ interface HLA {
 }
 ```
 
-Use `tsc` command to update `build` folder
+# GET `/decode-genome/:tokenId` 
+called by marketplace UI, returns raw genome/donor data as string
+
+# Notes 
+
+Run `yarn update-build` to update `build` folder
 
 Admin suite https://dashboard.heroku.com/apps/amino-chain-backend

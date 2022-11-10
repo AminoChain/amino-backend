@@ -1,16 +1,13 @@
 import cors from 'cors'
-import {BigNumberish, BytesLike, CallOverrides, Contract, ContractTransaction, ethers, Overrides} from 'ethers'
-import express, {Application, raw, Request, Response} from 'express'
-// @ts-ignore
+import {Contract, ethers} from 'ethers'
+import express, {Application, Request, Response} from 'express'
 import AminoChainAuthenticatorArtifact from './artifacts/AminoChainAuthenticator.sol/AminoChainAuthenticator.json'
 import AminoChainDonationArtifact from './artifacts/AminoChainDonation.sol/AminoChainDonation.json'
 import { AminoChainAuthenticator, AminoChainDonation } from '../../amino-contracts/typechain/contracts'
 import {Encryptor} from "./encryptor";
-
 import * as dotenv from 'dotenv'
 import {getFilesFromPath, Web3Storage} from "web3.storage";
-import * as fs from "fs"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-import { open } from 'node:fs/promises';
+import * as fs from "fs";
 import {arrayify, recoverAddress} from "ethers/lib/utils";
 
 dotenv.config()
@@ -18,7 +15,7 @@ dotenv.config()
 const app: Application = express()
 
 const port = process.env.PORT || 3003
-const platformWalletPk = 'dc5007a9fc7f26997728e0738f21d8b276391b8a533fa134b149e143d7d1e21f'
+const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY || ''
 export const hlaEncodingKey = 'secret'//platformWalletPk
 
 export interface HLAHashed {
@@ -46,14 +43,10 @@ interface BiobankRegistrationData {
     genome: string
 }
 
-export type PromiseOrValue<T> = T | Promise<T>;
-
 app.use(express.json())
-// app.use(express.raw())
 app.use(cors())
 
 const encryptor = new Encryptor(hlaEncodingKey)
-
 
 app.post('/register-donation', async (req: Request, res: Response) => {
     const data = req.body as BiobankRegistrationData
@@ -108,55 +101,10 @@ app.post('/register-donation', async (req: Request, res: Response) => {
     }
 })
 
-/*app.post('/approve-donation/:biodataHash/:donorAddress', async (req: Request, res: Response) => {
-    try {
-        const {biodataHash, donorAddress} = req.params
-
-        const {signature} = req.body
-        const data = storage[biodataHash]
-        if (data) {
-            const { hla, amounts, biobankAddress} = data
-
-            const authenticator = await getAuthenticatorContract()
-
-            const bioDataHashed = {
-                A: ethers.utils.id(hla.A.toString()),
-                B: ethers.utils.id(hla.B.toString()),
-                C: ethers.utils.id(hla.C.toString()),
-                DPB: ethers.utils.id(hla.DPB.toString()),
-                DRB: ethers.utils.id(hla.DRB.toString()),
-            }
-
-            const biodataEncoded = encryptor.encrypt(JSON.stringify(hla))
-
-            try {
-                const tx = await authenticator.register(
-                    bioDataHashed,
-                    biodataHash,
-                    biodataEncoded, //ethers.constants.HashZero
-                    amounts,
-                    donorAddress,
-                    signature,
-                    biobankAddress,
-                    { gasLimit: 200_000 }
-                )
-                const receipt = await tx.wait()
-                console.log('Registration tx: '+tx.hash)
-            } catch (e) {
-                throw e
-            }
-
-            res.sendStatus(200)
-        } else {
-            console.error('No data for biodataHash: '+biodataHash)
-            res.status(500)
-        }
-    } catch (e) {
-        console.error(e)
-        res.status(500)
-    }
-})*/
-
+/* TODO
+Add protection from authorized usage by including signed by doctor message in request.
+Having message and signature we can get signer address and check if this address whitelisted in marketplace
+ */
 app.get('/decode-hla/:tokenId', async (req: Request, res: Response) => {
     const { tokenId} = req.params
 
@@ -173,20 +121,11 @@ app.get('/decode-hla/:tokenId', async (req: Request, res: Response) => {
     }
 })
 
-app.get('/encode-hla', async (req: Request, res: Response) => {
-    const encoded  = encryptor.encrypt(JSON.stringify({
-        A: [1, 2, 3],
-        B: [1, 2, 3],
-        C: [1, 2, 3],
-        DPB: [1, 2, 3, 4],
-        DRB: [1, 2, 3, 4],
-    }))
-
-    res.setHeader('Content-Type', 'application/json')
-    res.end(JSON.stringify(Object.values(encoded)))
-})
-
 app.get('/decode-genome/:tokenId', async (req: Request, res: Response) => {
+    /* TODO
+    Add protection from authorized usage by including signed by doctor message in request.
+    Having message and signature we can get signer address and check if this address whitelisted in marketplace
+     */
     const { tokenId} = req.params
 
     const nft = await getNftContract()
@@ -236,20 +175,15 @@ export async function uploadGenomeToIpfs(genome: string) {
 
     const genomeEncoded = encryptor.encrypt(genome)
 
-    fs.writeFile('file',genomeEncoded, (error) => {
+    fs.writeFile('genome.tmp',genomeEncoded, (error) => {
         console.error(error)
     })
 
     const files = await getFilesFromPath('file')
 
-
-    // const data = new Blob([genomeEncoded], { type: 'application/octet-stream' });
-
-    // const file = new File([genomeEncoded.buffer], 'genome.encoded.txt')
-    // const cid = await storage.put([file]);
-
     const cid = await storage.put(files)
 
-    console.log(cid)
+    // todo delete 'genome.tmp' file
+
     return cid as string
 }
