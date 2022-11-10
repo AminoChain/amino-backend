@@ -159,10 +159,21 @@ app.get('/decode-hla/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, 
         res.end(hla);
     }
 }));
+app.get('/encode-hla', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const encoded = encryptor.encrypt(JSON.stringify({
+        A: [1, 2, 3],
+        B: [1, 2, 3],
+        C: [1, 2, 3],
+        DPB: [1, 2, 3, 4],
+        DRB: [1, 2, 3, 4],
+    }));
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(Object.values(encoded)));
+}));
 app.get('/decode-genome/:tokenId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { tokenId } = req.params;
     const nft = yield getNftContract();
-    const genomeEncodedIpfsId = yield nft.getGenomeEncodedUrl(tokenId);
+    const genomeEncodedIpfsId = yield nft.getGenomeEncodedIpfsId(tokenId);
     if (genomeEncodedIpfsId === '') {
         res.status(200).end();
     }
@@ -187,7 +198,7 @@ function getAuthenticatorContract() {
 }
 function getNftContract() {
     return __awaiter(this, void 0, void 0, function* () {
-        const contract = new ethers_1.Contract('0x3dfF52834c6f242437Fc4bB960823b1a97Ab0aBC', AminoChainDonation_json_1.default.abi, signer);
+        const contract = new ethers_1.Contract('0x67954f1370E5aE6e47A2bbCf0Aa859524D2dcb5b', AminoChainDonation_json_1.default.abi, signer);
         return yield contract.deployed();
     });
 }
