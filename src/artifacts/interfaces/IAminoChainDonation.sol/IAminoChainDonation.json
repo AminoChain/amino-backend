@@ -200,7 +200,7 @@
           "type": "uint256"
         }
       ],
-      "name": "getGenomeEncodedUrl",
+      "name": "getGenomeEncodedIpfsId",
       "outputs": [
         {
           "internalType": "string",

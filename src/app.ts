@@ -209,7 +209,7 @@ async function getAuthenticatorContract() {
 
 async function getNftContract() {
     const contract = new Contract(
-        '0xE6C8610d8C6638fa7088186f29dceC474f1518C2',
+        '0x3dfF52834c6f242437Fc4bB960823b1a97Ab0aBC',
         AminoChainDonationArtifact.abi,
         signer
     )
