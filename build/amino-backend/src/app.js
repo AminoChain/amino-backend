@@ -52,7 +52,7 @@ const port = process.env.PORT || 3003;
 const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY || '';
 exports.hlaEncodingKey = 'secret'; //platformWalletPk
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({ origin: ["http://localhost:3000", "https://amino-vercel-app.vercel.app"] }));
 const encryptor = new encryptor_1.Encryptor(exports.hlaEncodingKey);
 app.post('/register-donation', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
