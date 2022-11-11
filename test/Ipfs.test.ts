@@ -3,8 +3,7 @@ import assert from "assert";
 import {hlaEncodingKey, uploadGenomeToIpfs} from "../src/app";
 import {Encryptor} from "../src/encryptor";
 
-describe('', () => {
-    it('', async () => {
+(async () => {
         const cid = await uploadGenomeToIpfs('test')
         // const cid = 'bafybeihfkmtsraiwkdkb7pc7ltmmsiqawoozzbjtcanilbykpv6trj5m7y'
 
@@ -17,5 +16,4 @@ describe('', () => {
         const decoded = encryptor.decrypt(new Uint8Array(encoded))
 
         assert.equal(decoded, "test")
-    })
-})
+})()

@@ -15,7 +15,8 @@
     "update-artifacts": "rm -r src/artifacts; mkdir src/artifacts && cp -r ../amino-contracts/artifacts/contracts/* src/artifacts && git commit src/artifacts/**/*.json -m artifacts",
     "update-build": "tsc && git commit build/** -m build",
     "start": "tsc && node build/amino-backend/src/app.js",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "test": "ts-node test/Ipfs.test.ts"
   },
   "devDependencies": {
     "@types/express": "^4.17.14",

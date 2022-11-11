@@ -136,15 +136,21 @@ app.get('/decode-genome/:tokenId', async (req: Request, res: Response) => {
     const nft = await getNftContract()
 
     const genomeEncodedIpfsId = await nft.getGenomeEncodedIpfsId(tokenId)
+        .then( id => id === 'test' ? 'bafybeihfkmtsraiwkdkb7pc7ltmmsiqawoozzbjtcanilbykpv6trj5m7y' : id)
+
     if (genomeEncodedIpfsId === '') {
         res.status(200).end()
     } else {
-        const url = `https://${genomeEncodedIpfsId}.ipfs.w3s.link/ipfs/${genomeEncodedIpfsId}/file`
-        const response = await fetch(url)
-        const encoded = await response.arrayBuffer()
-        const decoded = encryptor.decrypt(new Uint8Array(encoded))
-
-        res.status(200).send(decoded).end()
+        try {
+            const url = `https://${genomeEncodedIpfsId}.ipfs.w3s.link/ipfs/${genomeEncodedIpfsId}/file`
+            const response = await fetch(url)
+            const encoded = await response.arrayBuffer()
+            const decoded = encryptor.decrypt(new Uint8Array(encoded))
+            res.status(200).send(decoded).end()
+        } catch (e) {
+            console.error(e)
+            res.status(500).end()
+        }
     }
 })
 
@@ -180,7 +186,7 @@ export async function uploadGenomeToIpfs(genome: string) {
 
     const genomeEncoded = encryptor.encrypt(genome)
 
-    fs.writeFile('genome.tmp',genomeEncoded, (error) => {
+    fs.writeFile('file',genomeEncoded, (error) => {
         console.error(error)
     })
 
@@ -188,7 +194,7 @@ export async function uploadGenomeToIpfs(genome: string) {
 
     const cid = await storage.put(files)
 
-    // todo delete 'genome.tmp' file
+    fs.unlinkSync('file')
 
     return cid as string
 }

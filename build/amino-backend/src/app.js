@@ -123,16 +123,23 @@ app.get('/decode-genome/:tokenId', (req, res) => __awaiter(void 0, void 0, void 
      */
     const { tokenId } = req.params;
     const nft = yield getNftContract();
-    const genomeEncodedIpfsId = yield nft.getGenomeEncodedIpfsId(tokenId);
+    const genomeEncodedIpfsId = yield nft.getGenomeEncodedIpfsId(tokenId)
+        .then(id => id === 'test' ? 'bafybeihfkmtsraiwkdkb7pc7ltmmsiqawoozzbjtcanilbykpv6trj5m7y' : id);
     if (genomeEncodedIpfsId === '') {
         res.status(200).end();
     }
     else {
-        const url = `https://${genomeEncodedIpfsId}.ipfs.w3s.link/ipfs/${genomeEncodedIpfsId}/file`;
-        const response = yield fetch(url);
-        const encoded = yield response.arrayBuffer();
-        const decoded = encryptor.decrypt(new Uint8Array(encoded));
-        res.status(200).send(decoded).end();
+        try {
+            const url = `https://${genomeEncodedIpfsId}.ipfs.w3s.link/ipfs/${genomeEncodedIpfsId}/file`;
+            const response = yield fetch(url);
+            const encoded = yield response.arrayBuffer();
+            const decoded = encryptor.decrypt(new Uint8Array(encoded));
+            res.status(200).send(decoded).end();
+        }
+        catch (e) {
+            console.error(e);
+            res.status(500).end();
+        }
     }
 }));
 app.listen(port, function () {
@@ -157,12 +164,12 @@ function uploadGenomeToIpfs(genome) {
         const web3StorageApi = process.env.WEB3_STORAGE_TOKEN; // get token from https://web3.storage/tokens/ and set into .env
         const storage = new web3_storage_1.Web3Storage({ token: web3StorageApi });
         const genomeEncoded = encryptor.encrypt(genome);
-        fs.writeFile('genome.tmp', genomeEncoded, (error) => {
+        fs.writeFile('file', genomeEncoded, (error) => {
             console.error(error);
         });
         const files = yield (0, web3_storage_1.getFilesFromPath)('file');
         const cid = yield storage.put(files);
-        // todo delete 'genome.tmp' file
+        fs.unlinkSync('file');
         return cid;
     });
 }
