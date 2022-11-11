@@ -15,7 +15,12 @@ dotenv.config()
 const app: Application = express()
 
 const port = process.env.PORT || 3003
-const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY || ''
+const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY
+
+if (!platformWalletPk) {
+    throw new Error("No platform private key provided. Set PLATFORM_PRIVATE_KEY environment variable")
+}
+
 export const hlaEncodingKey = 'secret'//platformWalletPk
 
 export interface HLAHashed {

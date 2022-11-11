@@ -49,7 +49,10 @@ const utils_1 = require("ethers/lib/utils");
 dotenv.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3003;
-const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY || '';
+const platformWalletPk = process.env.PLATFORM_PRIVATE_KEY;
+if (!platformWalletPk) {
+    throw new Error("No platform private key provided. Set PLATFORM_PRIVATE_KEY environment variable");
+}
 exports.hlaEncodingKey = 'secret'; //platformWalletPk
 app.use(express_1.default.json());
 app.use((0, cors_1.default)({ origin: ["http://localhost:3000", "https://amino-vercel-app.vercel.app"] }));
