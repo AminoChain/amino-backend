@@ -142,6 +142,12 @@ app.get('/decode-genome/:tokenId', (req, res) => __awaiter(void 0, void 0, void 
         }
     }
 }));
+app.get('/is-it-doctor-or-researcher-address/:address', (req, res) => {
+    const { address } = req.params;
+    // TODO some logic
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ doctor: true }));
+});
 app.listen(port, function () {
     console.log(`App is listening on port http://localhost:${port} !`);
 });
