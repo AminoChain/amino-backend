@@ -155,13 +155,13 @@ const provider = new ethers_1.ethers.providers.JsonRpcProvider('https://rpc-mumb
 const signer = new ethers_1.ethers.Wallet(platformWalletPk, provider);
 function getAuthenticatorContract() {
     return __awaiter(this, void 0, void 0, function* () {
-        const contract = new ethers_1.Contract('0xe678C9BA5a9aE61fAc009a602b29ed869eD8156c', AminoChainAuthenticator_json_1.default.abi, signer);
+        const contract = new ethers_1.Contract('0xcB14fc2373e536ffb131795A2eabD8Cab57bd105', AminoChainAuthenticator_json_1.default.abi, signer);
         return yield contract.deployed();
     });
 }
 function getNftContract() {
     return __awaiter(this, void 0, void 0, function* () {
-        const contract = new ethers_1.Contract('0x3dfF52834c6f242437Fc4bB960823b1a97Ab0aBC', AminoChainDonation_json_1.default.abi, signer);
+        const contract = new ethers_1.Contract('0x61048058C2ac5BcCD10aeF9BaBDC56250DC5753B', AminoChainDonation_json_1.default.abi, signer);
         return yield contract.deployed();
     });
 }
